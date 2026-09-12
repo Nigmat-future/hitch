@@ -1,0 +1,39 @@
+{
+  "name": "hitch",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Connect the AI providers you already have on this machine to Pi and Oh My Pi, without copying secrets or hand-editing config files.",
+  "author": "Nigmat Rahim",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nigmat-future/hitch.git"
+  },
+  "bugs": "https://github.com/Nigmat-future/hitch/issues",
+  "homepage": "https://github.com/Nigmat-future/hitch#readme",
+  "type": "module",
+  "bin": {
+    "hitch": "bin/hitch.js"
+  },
+  "scripts": {
+    "start": "node bin/hitch.js",
+    "ui": "node bin/hitch.js ui",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "files": [
+    "bin",
+    "src"
+  ],
+  "keywords": [
+    "pi",
+    "oh-my-pi",
+    "llm",
+    "provider",
+    "byok",
+    "local-first",
+    "privacy"
+  ],
+  "license": "MIT"
+}

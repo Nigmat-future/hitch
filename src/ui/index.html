@@ -1,0 +1,929 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>hitch</title>
+<style>
+:root {
+  --paper: oklch(97.6% 0.009 85);
+  --paper-2: oklch(95.2% 0.012 85);
+  --paper-3: oklch(92.4% 0.014 84);
+  --ink: oklch(24% 0.02 55);
+  --ink-2: oklch(43% 0.02 60);
+  --ink-3: oklch(57% 0.018 65);
+  --rule: oklch(88.5% 0.013 80);
+  --rule-strong: oklch(80% 0.016 75);
+  --accent: oklch(56% 0.165 38);
+  --accent-hover: oklch(50% 0.16 38);
+  --accent-ink: oklch(98% 0.008 85);
+  --accent-soft: oklch(93.5% 0.035 50);
+  --ok: oklch(47% 0.09 150);
+  --ok-soft: oklch(94% 0.03 150);
+  --warn: oklch(50% 0.12 70);
+  --warn-soft: oklch(95% 0.045 88);
+  --danger: oklch(52% 0.18 28);
+  --danger-soft: oklch(94.5% 0.03 28);
+  --scrim: oklch(24% 0.02 55 / 0.28);
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Charter, Georgia, serif;
+  --sans: "Segoe UI Variable Text", "Segoe UI", -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Noto Sans", sans-serif;
+  --mono: "Cascadia Mono", "SF Mono", "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --radius: 7px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: oklch(20.5% 0.011 60);
+    --paper-2: oklch(23.5% 0.012 60);
+    --paper-3: oklch(27% 0.013 60);
+    --ink: oklch(93% 0.012 85);
+    --ink-2: oklch(78% 0.014 80);
+    --ink-3: oklch(64% 0.015 75);
+    --rule: oklch(31% 0.012 60);
+    --rule-strong: oklch(40% 0.014 62);
+    --accent: oklch(72% 0.135 48);
+    --accent-hover: oklch(77% 0.12 50);
+    --accent-ink: oklch(21% 0.03 45);
+    --accent-soft: oklch(30% 0.045 45);
+    --ok: oklch(77% 0.09 150);
+    --ok-soft: oklch(29% 0.035 150);
+    --warn: oklch(82% 0.11 82);
+    --warn-soft: oklch(30% 0.04 80);
+    --danger: oklch(72% 0.14 30);
+    --danger-soft: oklch(30% 0.05 30);
+    --scrim: oklch(10% 0.01 60 / 0.55);
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.5 var(--sans); font-feature-settings: "tnum" 1; }
+button, input, select { font: inherit; color: inherit; }
+::selection { background: var(--accent-soft); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--mono); font-size: 0.86em; letter-spacing: -0.01em; }
+.muted { color: var(--ink-3); }
+[hidden] { display: none !important; }
+
+/* ---------- bar ---------- */
+.bar { position: sticky; top: 0; z-index: 5; background: color-mix(in oklch, var(--paper) 92%, transparent); backdrop-filter: saturate(1.1) blur(6px); border-bottom: 1px solid var(--rule); }
+.bar-inner { max-width: 1040px; margin: 0 auto; padding: 10px clamp(16px, 4vw, 40px); display: flex; align-items: center; gap: clamp(12px, 3vw, 32px); }
+.brand { display: flex; align-items: center; gap: 8px; font-family: var(--serif); font-size: 21px; font-style: italic; letter-spacing: 0.01em; color: var(--ink); }
+.brand svg { width: 22px; height: 22px; color: var(--accent); }
+.tabs { display: flex; gap: 2px; padding: 3px; background: var(--paper-2); border: 1px solid var(--rule); border-radius: 9px; }
+.tab { border: 0; background: none; padding: 5px 14px; border-radius: 6px; cursor: pointer; color: var(--ink-2); display: flex; gap: 8px; align-items: baseline; white-space: nowrap; }
+.tab .n { font-size: 12px; color: var(--ink-3); }
+.tab[aria-selected="true"] { background: var(--paper); color: var(--ink); box-shadow: 0 0 0 1px var(--rule), 0 1px 2px oklch(24% 0.02 55 / 0.06); }
+.bar .spacer { flex: 1; }
+.local { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; color: var(--ink-3); white-space: nowrap; }
+.local i { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 3px var(--ok-soft); }
+
+/* ---------- buttons ---------- */
+.btn { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--rule-strong); background: var(--paper); color: var(--ink); padding: 7px 14px; border-radius: var(--radius); cursor: pointer; white-space: nowrap; transition: background .15s, border-color .15s, color .15s; }
+.btn:hover { background: var(--paper-2); border-color: var(--ink-3); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+.btn.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+.btn.quiet { border-color: transparent; background: none; color: var(--ink-2); padding-inline: 10px; }
+.btn.quiet:hover { background: var(--paper-2); color: var(--ink); }
+.btn.danger { color: var(--danger); }
+.btn.danger.armed { background: var(--danger); border-color: var(--danger); color: var(--paper); }
+.btn.small { padding: 4px 10px; font-size: 13px; }
+.btn:disabled { opacity: .45; cursor: default; pointer-events: none; }
+
+/* ---------- layout ---------- */
+main { max-width: 1040px; margin: 0 auto; padding: clamp(28px, 5vw, 56px) clamp(16px, 4vw, 40px) 120px; }
+.head { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 12px 24px; margin-bottom: clamp(20px, 3vw, 32px); }
+.head h1 { font-family: var(--serif); font-weight: 400; font-size: clamp(34px, 2rem + 2.2vw, 54px); line-height: 1; letter-spacing: -0.01em; margin: 0; }
+.head .file { margin: 10px 0 0; color: var(--ink-3); display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline; }
+.head .actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.notice { margin: 0 0 18px; padding: 10px 14px; border-radius: var(--radius); background: var(--warn-soft); color: var(--warn); font-size: 14px; }
+
+h2 { font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.09em; font-weight: 600; color: var(--ink-3); margin: 0; display: flex; gap: 10px; align-items: baseline; }
+.section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--ink); }
+.section-head p { margin: 0; color: var(--ink-3); font-size: 13.5px; }
+section + section { margin-top: clamp(40px, 6vw, 64px); }
+
+/* ---------- ledger rows ---------- */
+.rows { list-style: none; margin: 0; padding: 0; }
+.row { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 0.9fr) minmax(0, 1.05fr) 88px 24px; gap: 4px 20px; align-items: center; padding: 14px 4px; border-bottom: 1px solid var(--rule); cursor: pointer; position: relative; transition: background .15s; }
+.row:hover { background: var(--paper-2); }
+.row:focus-visible { outline-offset: -2px; }
+.row .who { min-width: 0; }
+.row .name { font-weight: 600; font-size: 15.5px; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.row .url { color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 1px; }
+.row .cell { font-size: 14px; color: var(--ink-2); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row .count { text-align: right; font-size: 14px; color: var(--ink-2); white-space: nowrap; }
+.row .go { display: flex; align-items: center; justify-content: center; color: var(--ink-3); transition: transform .2s var(--ease), color .15s; }
+.row:hover .go { transform: translateX(3px); color: var(--accent); }
+.tag { font-size: 11.5px; font-weight: 500; letter-spacing: .01em; padding: 1px 7px; border-radius: 99px; background: var(--paper-3); color: var(--ink-2); white-space: nowrap; }
+.tag.hitch { background: var(--accent-soft); color: var(--accent); }
+.dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 7px; vertical-align: 2px; background: var(--ok); }
+.dot.warn { background: var(--warn); }
+.dot.none { background: var(--rule-strong); }
+
+.found .row { grid-template-columns: 28px minmax(0, 1.7fr) minmax(0, 1.05fr) 88px auto; cursor: default; }
+.found .row:hover { background: none; }
+.found .row.selected { background: var(--accent-soft); }
+.found .from { font-size: 12.5px; color: var(--ink-3); }
+.check { width: 17px; height: 17px; accent-color: var(--accent); cursor: pointer; margin: 0; }
+.empty { padding: 28px 4px; color: var(--ink-2); max-width: 60ch; }
+.empty p { margin: 0 0 14px; }
+.more { margin-top: 14px; display: flex; gap: 18px; flex-wrap: wrap; align-items: center; font-size: 13.5px; color: var(--ink-3); }
+.more label { display: inline-flex; gap: 8px; align-items: center; cursor: pointer; }
+details.looked { font-size: 13px; color: var(--ink-3); }
+details.looked summary { cursor: pointer; }
+details.looked ul { margin: 10px 0 0; padding: 0; list-style: none; display: grid; gap: 4px; }
+
+.bulk { position: fixed; left: 50%; bottom: 20px; transform: translate(-50%, calc(100% + 40px)); visibility: hidden; transition: transform .35s var(--ease), visibility 0s linear .35s; z-index: 6; display: flex; gap: 10px; align-items: center; background: var(--ink); color: var(--paper); padding: 8px 8px 8px 18px; border-radius: 11px; box-shadow: 0 10px 30px oklch(20% 0.02 55 / .25); max-width: calc(100vw - 32px); }
+.bulk.show { transform: translate(-50%, 0); visibility: visible; transition: transform .35s var(--ease), visibility 0s; }
+.bulk .btn.quiet { color: color-mix(in oklch, var(--paper) 75%, transparent); }
+.bulk .btn.quiet:hover { background: color-mix(in oklch, var(--paper) 12%, transparent); color: var(--paper); }
+
+/* ---------- drawer ---------- */
+.scrim { position: fixed; inset: 0; background: var(--scrim); opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 20; }
+.scrim.show { opacity: 1; pointer-events: auto; }
+.drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(700px, 100vw); background: var(--paper); border-left: 1px solid var(--rule); z-index: 21; display: grid; grid-template-rows: auto 1fr auto; transform: translateX(104%); visibility: hidden; transition: transform .38s var(--ease), box-shadow .38s, visibility 0s linear .38s; }
+.drawer.show { transform: none; visibility: visible; box-shadow: -24px 0 60px oklch(20% 0.02 55 / .12); transition: transform .38s var(--ease), box-shadow .38s, visibility 0s; }
+.d-head { padding: 22px 28px 16px; border-bottom: 1px solid var(--rule); display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; }
+.d-head .eyebrow { font-size: 12.5px; color: var(--ink-3); letter-spacing: .02em; }
+.d-head h3 { font-family: var(--serif); font-weight: 400; font-size: 30px; line-height: 1.1; margin: 0; overflow-wrap: anywhere; }
+.d-body { overflow-y: auto; padding: 6px 28px 32px; overscroll-behavior: contain; }
+.d-foot { border-top: 1px solid var(--rule); padding: 12px 28px; display: flex; gap: 10px; align-items: center; background: var(--paper); }
+.d-foot .spacer { flex: 1; }
+.d-foot .summary { font-size: 13px; color: var(--danger); }
+
+fieldset { border: 0; margin: 0; padding: 22px 0 4px; min-width: 0; }
+fieldset + fieldset { border-top: 1px solid var(--rule); }
+legend { float: left; width: 100%; padding: 0; margin-bottom: 14px; font-size: 12.5px; text-transform: uppercase; letter-spacing: .09em; font-weight: 600; color: var(--ink-3); }
+legend + * { clear: both; }
+.field { display: grid; gap: 6px; margin-bottom: 16px; }
+.field > label, .label { font-weight: 600; font-size: 14px; }
+.hint { font-size: 13px; color: var(--ink-3); margin: 0; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+.input, select.input { width: 100%; background: var(--paper); border: 1px solid var(--rule-strong); border-radius: var(--radius); padding: 8px 11px; min-height: 38px; transition: border-color .15s, box-shadow .15s; }
+.input:hover { border-color: var(--ink-3); }
+.input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.input.mono { font-size: 13.5px; }
+.input[aria-invalid="true"] { border-color: var(--danger); }
+.msg { font-size: 13px; display: grid; gap: 2px; }
+.msg .e { color: var(--danger); }
+.msg .w { color: var(--warn); }
+.msg:empty { display: none; }
+
+.choices { display: grid; gap: 8px; }
+.choice { border: 1px solid var(--rule); border-radius: 9px; padding: 11px 14px; display: grid; grid-template-columns: 20px 1fr; gap: 2px 10px; cursor: pointer; transition: border-color .15s, background .15s; }
+.choice:hover { border-color: var(--rule-strong); }
+.choice input { margin: 3px 0 0; accent-color: var(--accent); }
+.choice .t { font-weight: 600; font-size: 14.5px; }
+.choice .d { grid-column: 2; font-size: 13px; color: var(--ink-3); }
+.choice .x { grid-column: 2; margin-top: 8px; display: grid; gap: 6px; }
+.choice.on { border-color: var(--accent); background: color-mix(in oklch, var(--accent-soft) 45%, var(--paper)); }
+.choice .x:empty { display: none; }
+
+.models { display: grid; gap: 8px; }
+.mrow { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1.15fr) 78px 78px auto 30px; gap: 6px; align-items: center; }
+.mrow.headings { font-size: 12px; color: var(--ink-3); padding: 0 2px; }
+.mrow .flags { display: flex; gap: 4px; }
+.flag { display: inline-flex; }
+.flag input { position: absolute; opacity: 0; pointer-events: none; }
+.flag span { font-size: 12px; padding: 5px 8px; border: 1px solid var(--rule); border-radius: 6px; color: var(--ink-3); cursor: pointer; user-select: none; white-space: nowrap; }
+.flag input:checked + span { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+.flag input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 1px; }
+.icon-btn { width: 30px; height: 30px; display: grid; place-items: center; border: 0; background: none; border-radius: 6px; color: var(--ink-3); cursor: pointer; }
+.icon-btn:hover { background: var(--danger-soft); color: var(--danger); }
+.model-tools { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; align-items: center; }
+.picker { margin-top: 12px; border: 1px solid var(--rule); border-radius: 9px; overflow: hidden; }
+.picker .ph { display: flex; gap: 8px; padding: 8px; background: var(--paper-2); border-bottom: 1px solid var(--rule); align-items: center; }
+.picker ul { list-style: none; margin: 0; padding: 4px 0; max-height: 240px; overflow: auto; }
+.picker li label { display: flex; gap: 10px; padding: 5px 12px; cursor: pointer; font-family: var(--mono); font-size: 13px; }
+.picker li label:hover { background: var(--paper-2); }
+.picker li.have label { color: var(--ink-3); }
+.switch { display: flex; gap: 10px; align-items: flex-start; margin-top: 14px; cursor: pointer; }
+.switch input { accent-color: var(--accent); margin-top: 4px; }
+
+.hrow { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) 30px; gap: 6px; margin-bottom: 6px; }
+.locked { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 4px 0 11px; min-height: 38px; border: 1px dashed var(--rule-strong); border-radius: var(--radius); color: var(--ink-3); font-size: 13px; }
+details.adv > summary { cursor: pointer; list-style: none; font-size: 12.5px; text-transform: uppercase; letter-spacing: .09em; font-weight: 600; color: var(--ink-3); padding: 22px 0 14px; }
+details.adv > summary::before { content: "+ "; }
+details.adv[open] > summary::before { content: "− "; }
+details.adv { border-top: 1px solid var(--rule); }
+.preview { margin: 0; padding: 14px 16px; background: var(--paper-2); border: 1px solid var(--rule); border-radius: 9px; font-family: var(--mono); font-size: 12.5px; line-height: 1.55; white-space: pre; overflow: auto; max-height: 360px; color: var(--ink-2); }
+.kept { font-size: 13px; color: var(--ink-3); margin-top: 10px; }
+
+/* ---------- toasts ---------- */
+.toasts { position: fixed; left: clamp(16px, 3vw, 28px); bottom: 20px; display: grid; gap: 8px; z-index: 30; max-width: min(460px, calc(100vw - 32px)); }
+.toast { background: var(--ink); color: var(--paper); border-radius: 10px; padding: 10px 10px 10px 16px; display: flex; gap: 12px; align-items: center; font-size: 14px; box-shadow: 0 10px 30px oklch(20% 0.02 55 / .25); animation: rise .35s var(--ease); }
+.toast.error { background: var(--danger); }
+.toast .btn { background: none; border-color: color-mix(in oklch, var(--paper) 35%, transparent); color: var(--paper); padding: 4px 10px; font-size: 13px; }
+.toast .btn:hover { background: color-mix(in oklch, var(--paper) 14%, transparent); }
+.toast span { flex: 1; }
+@keyframes rise { from { transform: translateY(12px); opacity: 0; } }
+
+.stopped { min-height: 100vh; display: grid; place-items: center; text-align: center; padding: 24px; }
+.stopped h1 { font-family: var(--serif); font-weight: 400; font-style: italic; font-size: 40px; margin: 0 0 8px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}
+@media (max-width: 760px) {
+  .bar-inner { flex-wrap: wrap; gap: 10px; }
+  .bar .spacer { display: none; }
+  .tabs { order: 3; width: 100%; }
+  .tab { flex: 1; justify-content: center; }
+  .local b { display: none; }
+  .brand { margin-right: auto; }
+  .head { grid-template-columns: 1fr; }
+  .head .actions { justify-content: flex-start; }
+  .section-head { flex-direction: column; align-items: flex-start; gap: 2px; }
+  .row { grid-template-columns: minmax(0, 1fr) auto; }
+  .row .cell.api { display: none; }
+  .row .cell.key { grid-column: 1; grid-row: 2; }
+  .row .count { grid-column: 2; grid-row: 1 / span 2; align-self: center; }
+  .row .go { display: none; }
+  .found .row { grid-template-columns: 24px minmax(0, 1fr) auto; }
+  .found .row .cell.key { grid-column: 2; grid-row: 2; }
+  .found .row .count { display: none; }
+  .found .row .act { grid-column: 3; grid-row: 1 / span 2; }
+  .d-head, .d-body, .d-foot { padding-left: 18px; padding-right: 18px; }
+  .two { grid-template-columns: 1fr; }
+  .mrow { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 30px; }
+  .mrow.headings { display: none; }
+  .mrow .ctx, .mrow .out { grid-row: 2; }
+  .mrow .ctx { grid-column: 1; }
+  .mrow .out { grid-column: 2; }
+  .mrow .flags { grid-row: 3; grid-column: 1 / span 2; }
+  .mrow .icon-btn { grid-row: 1; grid-column: 3; }
+  .mrow { padding-bottom: 10px; border-bottom: 1px dashed var(--rule); }
+}
+</style>
+</head>
+<body>
+<header class="bar">
+  <div class="bar-inner">
+    <div class="brand" aria-label="hitch">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 2.5v19"/><path d="M4.5 9.2c0-2 3.4-3.2 7.5-3.2s7.5 1.2 7.5 3.2S16.1 12.4 12 12.4"/><path d="M19.5 14.8c0 2-3.4 3.2-7.5 3.2s-7.5-1.2-7.5-3.2 3.4-3.2 7.5-3.2"/></svg>
+      hitch
+    </div>
+    <nav class="tabs" role="tablist" aria-label="Tool to configure" id="tabs"></nav>
+    <div class="spacer"></div>
+    <span class="local" title="The panel runs on 127.0.0.1. hitch sends nothing anywhere unless you press Fetch models."><i></i><b>Local only</b></span>
+    <button class="btn quiet small" id="quit">Quit</button>
+  </div>
+</header>
+
+<main id="main" aria-live="polite"></main>
+
+<div class="bulk" id="bulk" role="region" aria-label="Selected providers">
+  <span id="bulkText"></span>
+  <button class="btn quiet small" id="bulkClear">Clear</button>
+  <button class="btn primary small" id="bulkAdd">Add as they are</button>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="dTitle" aria-hidden="true"></aside>
+<div class="toasts" id="toasts" aria-live="assertive"></div>
+
+<script>
+(() => {
+  "use strict";
+  const token = location.hash.slice(1);
+  history.replaceState(null, "", location.pathname);
+
+  // ---------- helpers ----------
+  const $ = (sel, root = document) => root.querySelector(sel);
+  const h = (tag, attrs = {}, ...kids) => {
+    const node = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs || {})) {
+      if (v === undefined || v === null || v === false) continue;
+      if (k === "class") node.className = v;
+      else if (k.startsWith("on")) node.addEventListener(k.slice(2), v);
+      else if (k === "value") node.value = v;
+      else if (k === "checked") node.checked = Boolean(v);
+      else if (v === true) node.setAttribute(k, "");
+      else node.setAttribute(k, String(v));
+    }
+    for (const kid of kids.flat(Infinity)) {
+      if (kid === null || kid === undefined || kid === false) continue;
+      node.append(kid instanceof Node ? kid : document.createTextNode(String(kid)));
+    }
+    return node;
+  };
+  const svg = (d) => {
+    const s = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    s.setAttribute("viewBox", "0 0 24 24"); s.setAttribute("width", "16"); s.setAttribute("height", "16");
+    s.setAttribute("fill", "none"); s.setAttribute("stroke", "currentColor"); s.setAttribute("stroke-width", "2");
+    s.setAttribute("stroke-linecap", "round"); s.setAttribute("stroke-linejoin", "round"); s.setAttribute("aria-hidden", "true");
+    const p = document.createElementNS("http://www.w3.org/2000/svg", "path"); p.setAttribute("d", d); s.append(p);
+    return s;
+  };
+  const ICON = { go: "M9 6l6 6-6 6", x: "M6 6l12 12M18 6L6 18", plus: "M12 5v14M5 12h14" };
+  const store = {
+    get: (k) => { try { return sessionStorage.getItem(k); } catch { return null; } },
+    set: (k, v) => { try { sessionStorage.setItem(k, v); } catch { /* private mode */ } },
+  };
+  const plural = (n, one, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
+  const hostOf = (url) => { try { return new URL(url).host; } catch { return url; } };
+  const slug = (text) => String(text || "").toLowerCase().replace(/[^a-z0-9._-]+/g, "-").replace(/^[-.]+|[-.]+$/g, "").slice(0, 64);
+
+  const api = async (path, body) => {
+    const res = await fetch(path, {
+      method: body ? "POST" : "GET",
+      headers: { "x-hitch-token": token, ...(body ? { "content-type": "application/json" } : {}) },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    const data = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+    if (!res.ok) { const e = new Error(data.error || `HTTP ${res.status}`); e.data = data; e.status = res.status; throw e; }
+    return data;
+  };
+
+  const API_NAMES = {
+    "openai-completions": ["OpenAI chat", "POST /chat/completions. What most proxies and local servers speak."],
+    "openai-responses": ["OpenAI responses", "POST /responses. OpenAI's newer API, used by Codex."],
+    "anthropic-messages": ["Anthropic", "POST /v1/messages. Claude and Claude-compatible relays."],
+    "google-generative-ai": ["Gemini", "Google Generative Language API."],
+    "openai-codex-responses": ["Codex responses", "OpenAI Codex backend."],
+    "azure-openai-responses": ["Azure OpenAI", "Azure-hosted responses API."],
+    "bedrock-converse-stream": ["AWS Bedrock", "Bedrock Converse streaming."],
+    "google-gemini-cli": ["Gemini CLI", "Gemini CLI login."],
+    "google-vertex": ["Vertex AI", "Google Cloud Vertex."],
+  };
+  const apiName = (id) => (API_NAMES[id] ? API_NAMES[id][0] : id);
+
+  // ---------- toasts ----------
+  const toast = (text, { action, error = false, ms = 7000 } = {}) => {
+    // Undo always restores the most recent change, so only the newest
+    // toast may offer it.
+    if (action) $("#toasts").querySelectorAll(".toast.has-action").forEach((old) => old.remove());
+    const node = h("div", { class: `toast${error ? " error" : ""}${action ? " has-action" : ""}`, role: "status" }, h("span", {}, text));
+    if (action) node.append(h("button", { class: "btn", onclick: async () => { node.remove(); await action.fn(); } }, action.label));
+    node.append(h("button", { class: "btn", "aria-label": "Dismiss", onclick: () => node.remove() }, svg(ICON.x)));
+    $("#toasts").append(node);
+    setTimeout(() => node.remove(), ms);
+  };
+
+  // Two-step buttons instead of confirm dialogs.
+  const arm = (button, label, fn) => {
+    if (button.dataset.armed) { delete button.dataset.armed; button.classList.remove("armed"); return fn(); }
+    const original = button.textContent;
+    button.dataset.armed = "1"; button.classList.add("armed"); button.textContent = label;
+    setTimeout(() => { if (button.isConnected && button.dataset.armed) { delete button.dataset.armed; button.classList.remove("armed"); button.textContent = original; } }, 4000);
+    return undefined;
+  };
+
+  // ---------- state ----------
+  let state = null;
+  let current = store.get("hitch.target");
+  let showConnected = false;
+  const selected = new Set();
+
+  const target = () => state.targets.find((t) => t.id === current) || state.targets[0];
+
+  const refresh = async () => {
+    state = await api("/api/state");
+    if (!state.targets.some((t) => t.id === current)) {
+      const omp = state.targets.find((t) => t.id === "omp");
+      current = omp && omp.exists ? "omp" : state.targets[0].id;
+    }
+    render();
+  };
+
+  const undo = async (t) => {
+    try {
+      await api("/api/undo", { target: t.id });
+      toast(`Restored ${t.file} to how it was before.`);
+      await refresh();
+    } catch (e) { toast(e.message, { error: true }); }
+  };
+
+  // ---------- page ----------
+  const keyLabel = (key) => {
+    switch (key.kind) {
+      case "env": return [key.present ? "" : "warn", `$${key.env}`, key.present ? "Read from your environment" : `$${key.env} is not set in the shell that started hitch`];
+      case "command": return ["", "Helper command", `Runs: ${key.command}`];
+      case "hitch": {
+        const source = state && state.sources.find((s) => s.id === key.sourceId.split("/")[0]);
+        return ["", `From ${source ? source.label : key.sourceId.split("/")[0]}`, `hitch reads it from ${key.sourceId} when needed`];
+      }
+      case "literal": return ["", "Saved in file", "The key is stored in this config file"];
+      case "stored": return ["", `Stays in ${String(key.where || "").split("/").pop()}`, `Lives in ${key.where}`];
+      default: return ["none", "No key", "No key configured"];
+    }
+  };
+  const keyCell = (key) => {
+    const [tone, text, title] = keyLabel(key);
+    return h("div", { class: "cell key", title }, h("span", { class: `dot ${tone}` }), text);
+  };
+
+  const renderTabs = () => {
+    const tabs = $("#tabs");
+    tabs.replaceChildren(...state.targets.map((t) => h("button", {
+      class: "tab", role: "tab", "aria-selected": String(t.id === current),
+      onclick: () => { current = t.id; store.set("hitch.target", t.id); selected.clear(); render(); },
+    }, t.label, h("span", { class: "n" }, t.entries.length))));
+  };
+
+  const renderHead = (t) => h("div", { class: "head" },
+    h("div", {},
+      h("h1", {}, t.label),
+      h("p", { class: "file" }, h("span", { class: "mono" }, t.file), t.exists ? null : h("span", {}, "will be created on first save"))),
+    h("div", { class: "actions" },
+      t.backups ? h("button", { class: "btn quiet", onclick: (ev) => arm(ev.currentTarget, "Restore previous version?", () => undo(t)) }, "Undo last change") : null,
+      h("button", { class: "btn primary", onclick: (ev) => openEditor({ opener: ev.currentTarget }) }, svg(ICON.plus), "Add provider")));
+
+  const renderEntries = (t) => {
+    const rows = t.entries.map((entry) => {
+      const models = entry.override ? "overrides" : entry.models.length ? plural(entry.models.length, "model") : entry.discovery ? "discovers" : "no models";
+      const open = (ev) => openEditor({ entry, opener: ev.currentTarget });
+      return h("li", {
+        class: "row", tabindex: "0", role: "button", "aria-label": `Edit ${entry.name}`,
+        onclick: open, onkeydown: (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); open(ev); } },
+      },
+      h("div", { class: "who" },
+        h("div", { class: "name" }, entry.name, entry.managed ? h("span", { class: "tag hitch", title: `Added by hitch from ${entry.managed.id}` }, "via hitch") : null),
+        entry.override
+          ? h("div", { class: "url" }, `Settings for the built-in ${entry.name} provider`)
+          : h("div", { class: "url mono" }, entry.baseUrl)),
+      h("div", { class: "cell api" }, entry.override ? "Built-in" : apiName(entry.api)),
+      keyCell(entry.key),
+      h("div", { class: "count" }, models),
+      h("span", { class: "go" }, svg(ICON.go)));
+    });
+    return h("section", {},
+      h("div", { class: "section-head" }, h("h2", {}, "Providers", h("span", { class: "muted" }, t.entries.length)), h("p", {}, "Click one to change it.")),
+      t.entries.length ? h("ul", { class: "rows" }, rows) : h("div", { class: "empty" },
+        h("p", {}, `${t.label} has no custom providers yet. Add one by hand, or start from something already set up in another tool below.`),
+        h("button", { class: "btn", onclick: (ev) => openEditor({ opener: ev.currentTarget }) }, "Add provider by hand")));
+  };
+
+  const renderFound = (t) => {
+    const all = state.providers.filter((p) => p.source !== t.id);
+    const connected = all.filter((p) => p.connected && p.connected[t.id]);
+    const open = all.filter((p) => !(p.connected && p.connected[t.id]));
+    const list = showConnected ? all : open;
+    const sourceLabel = (id) => (state.sources.find((s) => s.id === id) || {}).label || id;
+    const rows = list.map((p) => {
+      const inTarget = p.connected && p.connected[t.id];
+      const isSel = selected.has(p.id);
+      const note = p.notes.find((n) => n.startsWith("CC Switch profile"));
+      return h("li", { class: `row${isSel ? " selected" : ""}` },
+        inTarget ? h("span") : h("input", {
+          type: "checkbox", class: "check", checked: isSel, "aria-label": `Select ${p.id}`,
+          onchange: (ev) => { if (ev.target.checked) selected.add(p.id); else selected.delete(p.id); renderBulk(); ev.target.closest(".row").classList.toggle("selected", ev.target.checked); },
+        }),
+        h("div", { class: "who" },
+          h("div", { class: "name" }, p.displayName || p.name, h("span", { class: "from" }, `${sourceLabel(p.source)}${note ? ` · ${note.replace(/^CC Switch profile /, "")}` : ""}`)),
+          h("div", { class: "url mono" }, p.baseUrl)),
+        keyCell(p.key),
+        h("div", { class: "count" }, p.models.length ? plural(p.models.length, "model") : "models ?"),
+        h("div", { class: "act" }, inTarget
+          ? h("button", { class: "btn quiet small", title: `Already in ${t.label} as ${inTarget}`, onclick: (ev) => { const entry = t.entries.find((e) => e.name === inTarget); if (entry) openEditor({ entry, opener: ev.currentTarget }); } }, `In ${t.label} as ${inTarget}`)
+          : h("button", { class: "btn small", onclick: (ev) => openEditor({ found: p, opener: ev.currentTarget }) }, "Review & add")));
+    });
+    return h("section", { class: "found" },
+      h("div", { class: "section-head" }, h("h2", {}, "Found on this machine", h("span", { class: "muted" }, open.length)), h("p", {}, "Settings other tools already have. Nothing is copied until you save.")),
+      state.problems.map((p) => h("p", { class: "notice" }, p)),
+      list.length ? h("ul", { class: "rows" }, rows) : h("div", { class: "empty" }, h("p", {}, all.length
+        ? `Everything hitch found is already in ${t.label}.`
+        : "No provider settings found in Claude Code, Codex, OpenCode, Factory Droid or CC Switch. You can still add one by hand.")),
+      h("div", { class: "more" },
+        connected.length ? h("label", {}, h("input", { type: "checkbox", class: "check", checked: showConnected, onchange: (ev) => { showConnected = ev.target.checked; render(); } }), `Show ${plural(connected.length, "provider")} already in ${t.label}`) : null,
+        h("details", { class: "looked" }, h("summary", {}, "Where hitch looked"),
+          h("ul", {}, state.sources.flatMap((s) => s.files.map((f) => h("li", {}, h("span", { class: "mono" }, f.path), " ", h("span", {}, f.exists === null ? "" : f.exists ? "· found" : "· not present"))))))));
+  };
+
+  const renderBulk = () => {
+    const bar = $("#bulk");
+    const n = selected.size;
+    bar.classList.toggle("show", n > 0);
+    $("#bulkText").textContent = `${plural(n, "provider")} selected`;
+  };
+
+  const render = () => {
+    const t = target();
+    renderTabs();
+    $("#main").replaceChildren(
+      ...t.problems.map((p) => h("p", { class: "notice" }, p)),
+      renderHead(t),
+      renderEntries(t),
+      renderFound(t));
+    renderBulk();
+  };
+
+  $("#bulkClear").addEventListener("click", () => { selected.clear(); render(); });
+  $("#bulkAdd").addEventListener("click", async () => {
+    const t = target();
+    try {
+      const res = await api("/api/apply", { target: t.id, ids: [...selected], keys: "ref" });
+      selected.clear();
+      await refresh();
+      if (res.written.length) toast(`Added ${plural(res.written.length, "provider")} to ${t.label}.`, { action: { label: "Undo", fn: () => undo(t) } });
+      else toast(`Nothing to add. Those are already in ${t.label}.`);
+    } catch (e) { toast(e.message, { error: true }); }
+  });
+
+  $("#quit").addEventListener("click", (ev) => arm(ev.currentTarget, "Stop hitch?", async () => {
+    try { await api("/api/shutdown", {}); } catch { /* server already gone */ }
+    document.body.replaceChildren(h("div", { class: "stopped" }, h("div", {}, h("h1", {}, "hitch has stopped."), h("p", { class: "muted" }, "You can close this tab. Run hitch ui to open it again."))));
+  }));
+
+  // ---------- editor ----------
+  let draft = null;
+  let seq = 0;
+  let previewTimer = null;
+
+  const blankModel = () => ({ originalId: null, id: "", name: "", contextWindow: "", maxTokens: "", reasoning: false, image: false });
+
+  const suggestName = (t, p) => {
+    const base = slug(p.name) || slug(hostOf(p.baseUrl).split(".")[0]) || "provider";
+    const taken = new Set(t.entries.map((e) => e.name));
+    if (!taken.has(base)) return base;
+    const alt = `${base}-${p.source}`;
+    if (!taken.has(alt)) return alt;
+    let n = 2; while (taken.has(`${base}-${n}`)) n += 1; return `${base}-${n}`;
+  };
+
+  const formFrom = (t, { entry, found }) => {
+    if (entry) {
+      return {
+        name: entry.name, baseUrl: entry.baseUrl, api: entry.api,
+        key: { mode: "keep", env: entry.key.kind === "env" ? entry.key.env : "", command: "", value: "" },
+        headers: entry.headers.map((x) => ({ name: x.name, value: x.hidden ? "" : x.value, keep: Boolean(x.hidden), hidden: Boolean(x.hidden) })),
+        models: entry.models.map((m) => ({ originalId: m.id, id: m.id, name: m.name, contextWindow: String(m.contextWindow ?? ""), maxTokens: String(m.maxTokens ?? ""), reasoning: m.reasoning, image: m.image, extra: m.extra })),
+        discovery: entry.discovery,
+      };
+    }
+    if (found) {
+      return {
+        name: suggestName(t, found), baseUrl: found.baseUrl, api: t.apis.includes(found.api) ? found.api : t.apis[0],
+        key: { mode: found.key.kind === "none" ? "value" : "source", env: found.key.env || "", command: "", value: "" },
+        headers: Object.entries(found.headers || {}).map(([name, value]) => ({ name, value, keep: false, hidden: false })),
+        models: found.models.length ? found.models.map((m) => ({ ...blankModel(), id: m.id, name: m.name || "", contextWindow: String(m.contextWindow ?? ""), maxTokens: String(m.maxTokens ?? "") })) : [],
+        discovery: t.id === "omp" && !found.models.length && found.api.startsWith("openai-"),
+      };
+    }
+    return { name: "", baseUrl: "", api: "openai-completions", key: { mode: "env", env: "", command: "", value: "" }, headers: [], models: [blankModel()], discovery: false };
+  };
+
+  const payload = (forSave) => {
+    const f = draft.form;
+    const key = { mode: f.key.mode };
+    if (f.key.mode === "env") key.env = f.key.env;
+    if (f.key.mode === "command") key.command = f.key.command;
+    if (f.key.mode === "value") key.value = forSave ? f.key.value : "•".repeat(f.key.value.length);
+    return {
+      target: draft.target.id, originalName: draft.entry ? draft.entry.name : null, sourceId: draft.found ? draft.found.id : null,
+      form: { name: f.name, baseUrl: f.baseUrl, api: f.api, key, discovery: f.discovery,
+        headers: f.headers.map((x) => ({ name: x.name, value: x.value, keep: x.keep })),
+        models: f.models.map((m) => ({ originalId: m.originalId, id: m.id, name: m.name, contextWindow: m.contextWindow, maxTokens: m.maxTokens, reasoning: m.reasoning, image: m.image })) },
+    };
+  };
+
+  const changed = () => { draft.dirty = true; schedulePreview(); };
+
+  const schedulePreview = () => {
+    clearTimeout(previewTimer);
+    previewTimer = setTimeout(runPreview, 160);
+  };
+
+  const runPreview = async () => {
+    if (!draft || !draft.form) return;
+    const mine = ++seq;
+    try {
+      const res = await api("/api/preview", payload(false));
+      if (!draft || mine !== seq) return;
+      draft.result = res;
+    } catch (e) {
+      if (!draft || mine !== seq) return;
+      draft.result = { text: "", errors: [{ field: "form", message: e.message }], warnings: [] };
+    }
+    paintMessages();
+  };
+
+  const groupOf = (field) => {
+    if (field.startsWith("models.")) return `models.${field.split(".")[1]}`;
+    return field;
+  };
+
+  const paintMessages = () => {
+    if (!draft) return;
+    const { errors = [], warnings = [], text = "" } = draft.result || {};
+    const d = $("#drawer");
+    d.querySelectorAll("[data-msg]").forEach((box) => box.replaceChildren());
+    d.querySelectorAll("[aria-invalid]").forEach((el) => el.removeAttribute("aria-invalid"));
+    const show = (field) => draft.attempted || draft.touched.has(groupOf(field)) || draft.touched.has(field);
+    const put = (item, cls) => {
+      const group = groupOf(item.field);
+      const box = d.querySelector(`[data-msg="${CSS.escape(group)}"]`) || d.querySelector('[data-msg="form"]');
+      box.append(h("div", { class: cls }, item.message));
+      if (cls === "e") d.querySelectorAll(`[data-field="${CSS.escape(item.field)}"]`).forEach((el) => el.setAttribute("aria-invalid", "true"));
+    };
+    errors.filter((e) => show(e.field)).forEach((e) => put(e, "e"));
+    warnings.forEach((w) => put(w, "w"));
+    const pre = $("#dPreview");
+    if (pre) pre.textContent = text || "Fill in a name and endpoint to see what will be written.";
+    const summary = $("#dSummary");
+    if (summary) summary.textContent = draft.attempted && errors.length ? `${plural(errors.length, "field")} to fix` : "";
+  };
+
+  const touch = (group) => { if (!draft) return; draft.touched.add(group); paintMessages(); };
+
+  const input = (field, value, oninput, attrs = {}) => h("input", {
+    class: `input${attrs.mono ? " mono" : ""}`, value, "data-field": field, spellcheck: "false", autocomplete: "off",
+    ...Object.fromEntries(Object.entries(attrs).filter(([k]) => k !== "mono")),
+    oninput: (ev) => { oninput(ev.target.value); changed(); },
+    onblur: () => touch(field.startsWith("models.") ? groupOf(field) : field),
+  });
+
+  const keyChoices = () => {
+    const t = draft.target; const f = draft.form; const found = draft.found; const entry = draft.entry;
+    const file = t.id === "omp" ? "models.yml" : "models.json";
+    const options = [];
+    if (entry) {
+      const k = entry.key;
+      const current = k.kind === "env" ? (k.present ? `Uses $${k.env} from the environment.` : `Uses $${k.env}, which is not set in the shell that started hitch.`)
+        : k.kind === "command" ? `Runs ${k.command}`
+          : k.kind === "hitch" ? `hitch reads it from ${k.sourceId} when ${t.label} needs it.`
+            : k.kind === "literal" ? `A key is saved in ${file}. It stays hidden here.`
+              : "No key is configured right now.";
+      options.push(["keep", "Keep the current key", current]);
+    }
+    if (found && found.key.kind !== "none") {
+      const where = found.key.kind === "env" ? `Writes $${found.key.env}. The value stays in your environment.`
+        : found.key.kind === "command" ? "Runs the same helper command the other tool uses."
+          : `Writes "!hitch key ${found.id}". hitch reads the key from ${String(found.key.where || "").split("/").pop()} whenever ${t.label} needs it, so it is never duplicated.`;
+      options.push(["source", "Use it where it already lives", where]);
+      if (found.key.kind === "stored") options.push(["source-copy", `Copy the key into ${file}`, `Simple and self-contained. The key will then exist in two places.`]);
+    }
+    options.push(["env", "Environment variable", `${t.label} reads the key from a variable at startup.`]);
+    options.push(["value", "Paste a key", `Stored in ${file}. It goes only to that file, never back to this page.`]);
+    options.push(["command", "Helper command", "A command that prints the key, such as a password manager CLI."]);
+    options.push(["none", "No key", `Log in from inside ${t.label} instead.`]);
+
+    const extra = (mode) => {
+      if (mode !== f.key.mode) return [];
+      if (mode === "env") return [input("key", f.key.env, (v) => { f.key.env = v; }, { mono: true, placeholder: "MY_PROVIDER_API_KEY", "aria-label": "Variable name" })];
+      if (mode === "command") return [input("key", f.key.command, (v) => { f.key.command = v; }, { mono: true, placeholder: "op read op://Private/Provider/key", "aria-label": "Command" })];
+      if (mode === "value") return [input("key", f.key.value, (v) => { f.key.value = v; }, { type: "password", mono: true, placeholder: entry && entry.key.kind === "literal" ? "Leave empty to keep the saved key" : "sk-…", "aria-label": "API key" })];
+      return [];
+    };
+    const wrap = h("div", { class: "choices", role: "radiogroup", "aria-label": "Key" });
+    const paint = () => {
+      wrap.replaceChildren(...options.map(([mode, title, desc]) => h("label", { class: `choice${f.key.mode === mode ? " on" : ""}` },
+        h("input", { type: "radio", name: "keymode", value: mode, checked: f.key.mode === mode, onchange: () => { f.key.mode = mode; paint(); changed(); const first = wrap.querySelector(".choice.on .x input"); if (first) first.focus(); } }),
+        h("span", { class: "t" }, title),
+        h("span", { class: "d" }, desc),
+        h("div", { class: "x" }, extra(mode)))));
+    };
+    paint();
+    return wrap;
+  };
+
+  const modelsEditor = () => {
+    const f = draft.form;
+    const box = h("div", { class: "models" });
+    const paint = (focusLast) => {
+      box.replaceChildren(
+        f.models.length ? h("div", { class: "mrow headings" }, h("span", {}, "Model id"), h("span", {}, "Display name"), h("span", {}, "Context"), h("span", {}, "Max output"), h("span", {}, "Capabilities"), h("span")) : null,
+        ...f.models.map((m, i) => h("div", { class: "mrow-wrap" },
+          h("div", { class: "mrow" },
+            input(`models.${i}.id`, m.id, (v) => { m.id = v; }, { mono: true, placeholder: "model-id", "aria-label": "Model id" }),
+            input(`models.${i}.name`, m.name, (v) => { m.name = v; }, { placeholder: "optional", "aria-label": "Display name" }),
+            h("div", { class: "ctx" }, input(`models.${i}.contextWindow`, m.contextWindow, (v) => { m.contextWindow = v; }, { inputmode: "numeric", placeholder: "200k", "aria-label": "Context window", title: "Context window in tokens. 200k and 1m work." })),
+            h("div", { class: "out" }, input(`models.${i}.maxTokens`, m.maxTokens, (v) => { m.maxTokens = v; }, { inputmode: "numeric", placeholder: "32k", "aria-label": "Max output tokens", title: "Maximum output tokens" })),
+            h("div", { class: "flags" },
+              h("label", { class: "flag", title: "Model supports reasoning / thinking" }, h("input", { type: "checkbox", checked: m.reasoning, onchange: (ev) => { m.reasoning = ev.target.checked; changed(); } }), h("span", {}, "Thinks")),
+              h("label", { class: "flag", title: "Model accepts images" }, h("input", { type: "checkbox", checked: m.image, onchange: (ev) => { m.image = ev.target.checked; changed(); } }), h("span", {}, "Images"))),
+            h("button", { class: "icon-btn", type: "button", "aria-label": `Remove ${m.id || "model"}`, onclick: () => { f.models.splice(i, 1); paint(); changed(); } }, svg(ICON.x))),
+          h("div", { class: "msg", "data-msg": `models.${i}` }))));
+      if (focusLast) { const inputs = box.querySelectorAll(".mrow:not(.headings)"); const last = inputs[inputs.length - 1]; if (last) last.querySelector("input").focus(); }
+      paintMessages();
+    };
+    paint();
+    box.repaint = paint;
+    return box;
+  };
+
+  const headersEditor = () => {
+    const f = draft.form;
+    const box = h("div");
+    const paint = () => {
+      box.replaceChildren(...f.headers.map((row, i) => h("div", { class: "hrow" },
+        input("headers", row.name, (v) => { row.name = v; }, { mono: true, placeholder: "X-Header", "aria-label": "Header name" }),
+        row.keep
+          ? h("div", { class: "locked" }, "Hidden value, kept as is", h("button", { class: "btn quiet small", type: "button", onclick: () => { row.keep = false; row.value = ""; paint(); changed(); } }, "Replace"))
+          : input("headers", row.value, (v) => { row.value = v; }, { mono: true, placeholder: "value", "aria-label": "Header value" }),
+        h("button", { class: "icon-btn", type: "button", "aria-label": "Remove header", onclick: () => { f.headers.splice(i, 1); paint(); changed(); } }, svg(ICON.x)))),
+      h("button", { class: "btn quiet small", type: "button", onclick: () => { f.headers.push({ name: "", value: "", keep: false }); paint(); } }, svg(ICON.plus), "Add header"));
+    };
+    paint();
+    return box;
+  };
+
+  const fetchModels = async (button, list, pickerHost) => {
+    const original = button.textContent;
+    button.disabled = true; button.textContent = "Asking the endpoint…";
+    try {
+      const res = await api("/api/models", payload(true));
+      if (res.error || !res.models.length) {
+        toast(res.error ? `Could not list models: ${res.error}` : "The endpoint returned no models.", { error: true, ms: 9000 });
+        return;
+      }
+      const have = new Set(draft.form.models.map((m) => m.id));
+      const fresh = res.models.filter((m) => !have.has(m.id));
+      const chosen = new Set(fresh.length <= 12 ? fresh.map((m) => m.id) : []);
+      let filter = "";
+      const ul = h("ul");
+      const addBtn = h("button", { class: "btn primary small", type: "button" });
+      const paintList = () => {
+        ul.replaceChildren(...res.models.filter((m) => m.id.toLowerCase().includes(filter)).map((m) => h("li", { class: have.has(m.id) ? "have" : "" },
+          h("label", {}, h("input", { type: "checkbox", class: "check", checked: have.has(m.id) || chosen.has(m.id), disabled: have.has(m.id), onchange: (ev) => { if (ev.target.checked) chosen.add(m.id); else chosen.delete(m.id); paintCount(); } }), m.id))));
+      };
+      const paintCount = () => { addBtn.textContent = chosen.size ? `Add ${plural(chosen.size, "model")}` : "Add models"; addBtn.disabled = !chosen.size; };
+      addBtn.addEventListener("click", () => {
+        if (draft.form.models.length === 1 && !draft.form.models[0].id) draft.form.models = [];
+        res.models.filter((m) => chosen.has(m.id)).forEach((m) => draft.form.models.push({ ...blankModel(), id: m.id, name: m.name || "" }));
+        pickerHost.replaceChildren();
+        list.repaint(); changed();
+        toast(`Added ${plural(chosen.size, "model")}.`);
+      });
+      paintList(); paintCount();
+      pickerHost.replaceChildren(h("div", { class: "picker" },
+        h("div", { class: "ph" },
+          h("input", { class: "input", placeholder: `Filter ${res.models.length} models from ${hostOf(res.url || draft.form.baseUrl)}`, oninput: (ev) => { filter = ev.target.value.toLowerCase(); paintList(); } }),
+          h("button", { class: "btn quiet small", type: "button", onclick: () => pickerHost.replaceChildren() }, "Close"),
+          addBtn),
+        ul));
+    } catch (e) {
+      toast(e.message, { error: true });
+    } finally {
+      button.disabled = false; button.textContent = original;
+    }
+  };
+
+  const showDrawer = () => {
+    const d = $("#drawer");
+    d.setAttribute("aria-hidden", "false");
+    d.classList.add("show");
+    $("#scrim").classList.add("show");
+    document.body.style.overflow = "hidden";
+  };
+
+  // Entries without an endpoint only tune a provider the tool ships with
+  // (modelOverrides, compat, ...). The form cannot represent them faithfully,
+  // so hitch shows what they contain and offers nothing that could reshape them.
+  const openOverride = (t, entry, opener) => {
+    draft = { target: t, entry, found: null, opener, form: null, touched: new Set(), attempted: false, dirty: false, result: null };
+    const close = h("button", { class: "btn primary", type: "button", id: "dCancel", onclick: closeEditor }, "Close");
+    $("#drawer").replaceChildren(
+      h("div", { class: "d-head" },
+        h("div", {}, h("div", { class: "eyebrow" }, `${t.label} · built-in provider settings`), h("h3", { id: "dTitle" }, entry.name)),
+        h("button", { class: "icon-btn", type: "button", "aria-label": "Close", onclick: closeEditor }, svg(ICON.x))),
+      h("div", { class: "d-body" },
+        h("fieldset", {},
+          h("legend", {}, "What this is"),
+          h("p", {}, `This entry has no endpoint of its own. It adjusts ${t.label}'s built-in ${entry.name} provider, for example which models it offers or how they behave.`),
+          h("p", { class: "hint" }, `hitch leaves these settings exactly as they are. To change them, edit ${t.file} directly.`)),
+        h("fieldset", {},
+          h("legend", {}, "Settings it contains"),
+          entry.extra.length ? h("p", { class: "mono" }, entry.extra.join(", ")) : h("p", { class: "hint" }, "Nothing besides the name."),
+          entry.models.length ? h("p", { class: "hint" }, `Also lists ${plural(entry.models.length, "model")}.`) : null)),
+      h("div", { class: "d-foot" },
+        h("button", { class: "btn quiet danger", type: "button", onclick: (ev) => arm(ev.currentTarget, `Delete ${entry.name}?`, () => remove(entry)) }, "Delete"),
+        h("span", { class: "spacer" }), close));
+    showDrawer();
+    setTimeout(() => close.focus({ preventScroll: true }), 60);
+  };
+
+  const openEditor = ({ entry = null, found = null, opener = null } = {}) => {
+    const t = target();
+    if (entry && entry.override) return openOverride(t, entry, opener);
+    draft ={ target: t, entry, found, opener, form: formFrom(t, { entry, found }), touched: new Set(), attempted: false, dirty: false, result: null };
+    const f = draft.form;
+    const d = $("#drawer");
+    const models = modelsEditor();
+    const pickerHost = h("div");
+    const fetchBtn = h("button", { class: "btn small", type: "button", title: "Asks the endpoint's /models route with this key. The only network request hitch makes.", onclick: (ev) => fetchModels(ev.currentTarget, models, pickerHost) }, "Fetch from endpoint");
+    const apiHint = h("p", { class: "hint" }, (API_NAMES[f.api] || ["", ""])[1]);
+    const extras = entry ? [...new Set([...entry.extra, ...entry.models.flatMap((m) => m.extra)])] : [];
+    const title = entry ? entry.name : found ? `Add ${found.displayName || found.name}` : "New provider";
+    const eyebrow = entry ? `${t.label} · ${entry.managed ? (entry.managed.id === "manual" ? "added in hitch" : `added by hitch from ${entry.managed.id}`) : "your provider"}` : found ? `From ${(state.sources.find((s) => s.id === found.source) || {}).label || found.source} to ${t.label}` : `Add to ${t.label}`;
+
+    const deleteBtn = entry ? h("button", { class: "btn quiet danger", type: "button", onclick: (ev) => arm(ev.currentTarget, `Delete ${entry.name}?`, () => remove(entry)) }, "Delete") : null;
+    const cancelBtn = h("button", { class: "btn quiet", type: "button", id: "dCancel", onclick: (ev) => { if (draft && draft.dirty) arm(ev.currentTarget, "Discard changes?", closeEditor); else closeEditor(); } }, "Cancel");
+    const saveBtn = h("button", { class: "btn primary", type: "submit", form: "dForm" }, entry ? "Save changes" : `Add to ${t.label}`);
+
+    d.replaceChildren(
+      h("div", { class: "d-head" },
+        h("div", {}, h("div", { class: "eyebrow" }, eyebrow), h("h3", { id: "dTitle" }, title)),
+        h("button", { class: "icon-btn", type: "button", "aria-label": "Close", onclick: () => cancelBtn.click() }, svg(ICON.x))),
+      h("form", { class: "d-body", id: "dForm", novalidate: true, onsubmit: (ev) => { ev.preventDefault(); save(saveBtn); } },
+        h("div", { class: "msg", "data-msg": "form" }),
+        h("fieldset", {},
+          h("legend", {}, "Connection"),
+          h("div", { class: "field" },
+            h("label", { for: "fName" }, "Name"),
+            input("name", f.name, (v) => { f.name = v; $("#dTitle").textContent = v || title; }, { id: "fName", placeholder: "my-provider" }),
+            h("p", { class: "hint" }, `Shown in ${t.label}'s model picker as name/model-id.`),
+            h("div", { class: "msg", "data-msg": "name" })),
+          h("div", { class: "field" },
+            h("label", { for: "fUrl" }, "Endpoint"),
+            input("baseUrl", f.baseUrl, (v) => { f.baseUrl = v; }, { id: "fUrl", mono: true, placeholder: "https://api.example.com/v1", inputmode: "url" }),
+            h("div", { class: "msg", "data-msg": "baseUrl" })),
+          h("div", { class: "field" },
+            h("label", { for: "fApi" }, "API style"),
+            h("select", { class: "input", id: "fApi", "data-field": "api", onchange: (ev) => { f.api = ev.target.value; apiHint.textContent = (API_NAMES[f.api] || ["", ""])[1]; changed(); } },
+              [...new Set([...t.apis, f.api])].map((id) => h("option", { value: id, selected: id === f.api ? true : null }, apiName(id)))),
+            apiHint,
+            h("div", { class: "msg", "data-msg": "api" }))),
+        h("fieldset", {},
+          h("legend", {}, "Key"),
+          keyChoices(),
+          h("div", { class: "msg", "data-msg": "key", style: "margin-top:8px" })),
+        h("fieldset", {},
+          h("legend", {}, "Models"),
+          models,
+          h("div", { class: "model-tools" },
+            h("button", { class: "btn quiet small", type: "button", onclick: () => { f.models.push(blankModel()); models.repaint(true); } }, svg(ICON.plus), "Add model"),
+            fetchBtn),
+          pickerHost,
+          t.id === "omp" ? h("label", { class: "switch" }, h("input", { type: "checkbox", checked: f.discovery, onchange: (ev) => { f.discovery = ev.target.checked; changed(); } }), h("span", {}, h("span", { class: "label" }, "Let Oh My Pi discover models"), h("span", { class: "hint", style: "display:block" }, "OMP asks the endpoint for its model list itself. Works with OpenAI-style proxies."))) : null,
+          h("div", { class: "msg", "data-msg": "models", style: "margin-top:8px" })),
+        h("details", { class: "adv" },
+          h("summary", {}, "Headers"),
+          h("p", { class: "hint", style: "margin:0 0 10px" }, "Extra HTTP headers sent with every request. Values that look like secrets stay hidden."),
+          headersEditor(),
+          h("div", { class: "msg", "data-msg": "headers" })),
+        h("details", { class: "adv", open: true },
+          h("summary", {}, `What will be written to ${t.file.split("/").pop()}`),
+          h("pre", { class: "preview", id: "dPreview" }, "…"),
+          extras.length ? h("p", { class: "kept" }, `Also kept exactly as they are: ${extras.join(", ")}.`) : null,
+          entry && !entry.managed && t.id === "omp" ? h("p", { class: "kept" }, "Saving rewrites only this provider's lines. Comments inside this entry are not kept. A backup is made first.") : h("p", { class: "kept" }, "A backup of the file is made before every save."))),
+      h("div", { class: "d-foot" }, deleteBtn, h("span", { class: "summary", id: "dSummary" }), h("span", { class: "spacer" }), cancelBtn, saveBtn));
+
+    showDrawer();
+    runPreview();
+    setTimeout(() => { const first = entry ? null : $("#fName"); (first || d.querySelector(".d-head .icon-btn")).focus({ preventScroll: true }); }, 60);
+  };
+
+  const closeEditor = () => {
+    if (!draft) return;
+    const opener = draft.opener;
+    draft = null;
+    const d = $("#drawer");
+    d.classList.remove("show");
+    d.setAttribute("aria-hidden", "true");
+    $("#scrim").classList.remove("show");
+    document.body.style.overflow = "";
+    if (opener && opener.isConnected) opener.focus({ preventScroll: true });
+  };
+
+  const save = async (button) => {
+    if (!draft) return;
+    draft.attempted = true;
+    const t = draft.target;
+    button.disabled = true;
+    try {
+      const res = await api("/api/save", payload(true));
+      const wasNew = !draft.entry;
+      closeEditor();
+      await refresh();
+      toast(wasNew ? `Added ${res.name} to ${t.label}.` : `Saved ${res.name}.`, { action: { label: "Undo", fn: () => undo(t) } });
+    } catch (e) {
+      if (draft && e.data && e.data.errors) {
+        draft.result = { ...(draft.result || {}), errors: e.data.errors, warnings: e.data.warnings || [] };
+        paintMessages();
+        const bad = $("#drawer").querySelector('[aria-invalid="true"]');
+        if (bad) bad.focus();
+      } else toast(e.message, { error: true, ms: 10000 });
+    } finally {
+      button.disabled = false;
+    }
+  };
+
+  const remove = async (entry) => {
+    const t = draft.target;
+    try {
+      await api("/api/delete", { target: t.id, name: entry.name });
+      closeEditor();
+      await refresh();
+      toast(`Deleted ${entry.name} from ${t.label}.`, { action: { label: "Undo", fn: () => undo(t) } });
+    } catch (e) { toast(e.message, { error: true }); }
+  };
+
+  // Leaving with unsaved edits asks once, on the Cancel button itself.
+  $("#scrim").addEventListener("click", () => { if (draft) $("#dCancel").click(); });
+  document.addEventListener("keydown", (ev) => {
+    if (ev.key === "Escape" && draft) { ev.preventDefault(); $("#dCancel").click(); }
+    if ((ev.ctrlKey || ev.metaKey) && ev.key === "s" && draft) { ev.preventDefault(); $("#drawer .d-foot .btn.primary").click(); }
+  });
+
+  if (!token) {
+    $("#main").replaceChildren(h("div", { class: "empty" }, h("h1", { style: "font-family:var(--serif);font-weight:400" }, "Open hitch from its link"), h("p", {}, "This page needs the one-time link hitch prints when you run hitch ui.")));
+  } else {
+    refresh().catch((e) => toast(e.message, { error: true, ms: 20000 }));
+  }
+})();
+</script>
+</body>
+</html>
