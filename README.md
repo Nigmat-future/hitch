@@ -69,7 +69,29 @@ Tools like CC Switch handle this for Claude Code and Codex. For Pi, and especial
 
 ### Install
 
-hitch is downloaded straight from this repository. No package manager, no registry.
+**Inside Pi** (from the [Pi package catalog](https://pi.dev/packages))
+
+```console
+$ pi install npm:pi-hitch
+```
+
+or straight from this repository, no registry involved:
+
+```console
+$ pi install git:github.com/Nigmat-future/hitch
+```
+
+That adds three commands to Pi:
+
+| Command | What it does |
+| --- | --- |
+| `/hitch [omp] [ids…]` | Scan, pick a provider (or all), confirm, write it to Pi (or OMP), and refresh `/model`. |
+| `/hitch-ui` | Open the panel in your browser. It stops when you click Quit or close Pi. |
+| `/hitch-undo [omp]` | Restore the models file from hitch's last backup. |
+
+The extension runs the same CLI in a child process, so everything under [Privacy](#07--privacy) applies unchanged.
+
+**As a standalone command.** The installers download straight from this repository. No package manager, no registry.
 
 **macOS, Linux, WSL**
 
@@ -233,7 +255,7 @@ $ node --test
 $ node bin/hitch.js sources
 ```
 
-Zero dependencies, ES modules, `node:test`. Sources live in `src/sources/` (one file per tool), targets in `src/targets/`, the panel in `src/ui/`.
+Zero dependencies, ES modules, `node:test`. Sources live in `src/sources/` (one file per tool), targets in `src/targets/`, the panel in `src/ui/`, the Pi extension in `extensions/`. Try the extension from a checkout with `pi -e ./extensions/hitch.js`.
 
 ## License
 
